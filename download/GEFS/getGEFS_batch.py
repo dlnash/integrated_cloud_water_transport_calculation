@@ -21,5 +21,5 @@ data_name = ddict['data_name']
 ens = ddict['ens']
 
 ## run download_GEFS.sh to download data 
-bash_script = "/expanse/nfs/cw3e/cwp186/repos/integrated_cloud_water_transport_calculation/downloads/GEFS/download_GEFS.sh"
+bash_script = "/expanse/nfs/cw3e/cwp186/repos/integrated_cloud_water_transport_calculation/download/GEFS/download_GEFS.sh"
 print(subprocess.run([bash_script, init_date, data_name, ens]))

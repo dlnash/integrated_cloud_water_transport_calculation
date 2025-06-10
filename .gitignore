@@ -95,3 +95,5 @@ auxhist*
 #########
 .ipynb_checkpoints/*
 download/GEFS/.ipynb_checkpoints/*
+download/GEFS/slurm_out/*
+.ipynb_checkpoints
