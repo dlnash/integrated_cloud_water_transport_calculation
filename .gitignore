@@ -94,3 +94,4 @@ auxhist*
 # other #
 #########
 .ipynb_checkpoints/*
+download/GEFS/.ipynb_checkpoints/*
