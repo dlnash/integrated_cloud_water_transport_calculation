@@ -37,7 +37,7 @@ mpl.use('agg')
 
 import cw3ecmaps as ccmaps
 import domains as domains
-from plot_utils import crop_to_domain, plot_vectors, plot_contours
+from plot_utils import crop_to_domain, plot_vectors, plot_contours, create_folder
 
 current_dpi=300
 
@@ -297,7 +297,7 @@ def plot_fields(model_data, config):
                           mask_ocean=False, coastline=True)
 
         # Colormap
-        colorbar_name = 'ivt_intwest' if domain_name=='IntWest' else 'ivt'
+        colorbar_name = f"{filled_var}_{domain_name}"
         cmap, norm, bnds, cbarticks, cbarlbl = ccmaps.cmap(colorbar_name)
 
         # Filled contour
@@ -327,7 +327,7 @@ def plot_fields(model_data, config):
             ax.plot(lon_perimeter, lat_perimeter, 'k--', transform=cropped_ds.attrs["datacrs"])
 
         # Optional vectors
-        if vector_vars is not None:
+        if vector_vars != [None, None]:
             uvar, vvar = vector_vars
             plot_vectors(ax, cropped_ds, uvar, vvar, filled_var, domain_name,
                          scaling_factor, bnds, config)

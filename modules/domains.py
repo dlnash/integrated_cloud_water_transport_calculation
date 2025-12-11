@@ -15,7 +15,7 @@ Description: Dictionaries of domains for CW3E web maps
 
 import cartopy.crs as ccrs
 
-extent = {"npacific":      {'ext': [115., 245., -10., 70.], # North Pacific (extent in 0-360)
+extent = {"NPac":      {'ext': [115., 245., -10., 70.], # North Pacific (extent in 0-360)
                             'xticks': [125, 140, 155, 170, -175, -160, -145, -130, -115],
                             'yticks': [-10, 0, 10, 20, 30, 40, 50, 60, 70],
                             'ccrs': ccrs.PlateCarree(central_longitude=180),
@@ -29,54 +29,94 @@ extent = {"npacific":      {'ext': [115., 245., -10., 70.], # North Pacific (ext
                            },
             
           
-           "nepacific":    {'ext': [180., 245., 10., 70.], # Northeast Pacific (extent in 0-360)
+           "NEPac":    {'ext': [180., 245., 10., 70.], # Northeast Pacific (extent in 0-360)
                             'xticks': [-180, -170, -160, -150, -140, -130, -120],
                             'yticks': [10, 20, 30, 40, 50, 60, 70],
                             'ccrs': ccrs.PlateCarree(central_longitude=180),
                             'figsize': (10. ,8.)
                             },  
           
-           "uswc":         {'ext': [220., 250., 20., 50.], # U.S. West Coast (extent in 0-360)
+           "USWC":         {'ext': [220., 250., 20., 50.], # U.S. West Coast (extent in 0-360)
                             'xticks': [-140, -135, -130, -125, -120, -115, -110],
                             'yticks': [20, 25, 30, 35, 40, 45, 50],
                             'ccrs': ccrs.PlateCarree(central_longitude=180),
                             'figsize': (10. ,8.5)
                            },  
           
-           "namerica":     {'ext': [220, 300, 10., 60.], # North America
+           "NAmerica":     {'ext': [220, 300, 10., 60.], # North America
                             'xticks': [-140, -130, -120, -110, -100, -90, -80, -70, -60],
                             'yticks': [10, 20, 30, 40, 50, 60],
                             'ccrs': ccrs.PlateCarree(central_longitude=0),
-                            'figsize': (10. ,5.7)
+                            'figsize': (10. ,5.5)
                            }, 
           
-           "natlantic":    {'ext': [-90., 15., 10., 70.], # North Atlantic (ext in -180 to 180)
+           "NAtlantic":    {'ext': [-90., 15., 10., 70.], # North Atlantic (ext in -180 to 180)
                             'xticks': [-90, -75, -60, -45, -30, -15, 0, 15],
                             'yticks': [10, 20, 30, 40, 50, 60, 70],
                             'ccrs': ccrs.PlateCarree(central_longitude=0),
                             'figsize': (10. ,5.2)
                            }, 
           
-           "intwest":      {'ext': [-130., -100., 20., 50.], # Interior West
+           "IntWest":      {'ext': [230., 260., 20., 50.], # Interior West
                             'xticks': [-130, -125, -120, -115, -110, -105, -100],
                             'yticks': [20, 25, 30, 35, 40, 45, 50],
-                            'ccrs': ccrs.PlateCarree(central_longitude=0),
+                            'ccrs': ccrs.PlateCarree(central_longitude=180),
                             'figsize': (10. ,8.5)
                            },
           
-           "antarctica":   {'ext': [-180., 180, -50, -90.], # Antarctica
+           "Antarctica":   {'ext': [-180., 180, -90, -50.], # Antarctica
                             'xticks': [-15, -30,-45, -60, -75, -90, -105, -120, -135, -150, -165, 180, 165, 150, 135, 120, 105, 90, 75, 60, 45, 30, 15, 0],
                             'yticks': [-50, -60, -70, -80, -90],
                             'ccrs': ccrs.SouthPolarStereo(central_longitude=0),
                             'figsize': (10. ,8.5)
+                            }, 
+            "Arctic":   {'ext': [-180., 180, 50, 90.], # Arctic
+                            'xticks': [-15, -30,-45, -60, -75, -90, -105, -120, -135, -150, -165, 180, 165, 150, 135, 120, 105, 90, 75, 60, 45, 30, 15, 0],
+                            'yticks': [50, 60, 70, 80, 90],
+                            'ccrs': ccrs.NorthPolarStereo(central_longitude=0),
+                            'figsize': (10. ,8.5)
                            }, 
            
-           "ivtcross":    {'ext': [165., 245., 20., 70.], # Northeast Pacific plus a few (extent in 0-360)
-                            'xticks': [165, 175, -175, -165, -155, -145, -135, -125, -115],
-                            'yticks': [20, 30, 40, 50, 60, 70],
+            "EUS":         {'ext': [260, 295, 20., 50.], # southeast us
+                            'xticks': [-100, -95, -90, -85, -80, -75, -70, -65],
+                            'yticks': [20, 25, 30, 35, 40, 45, 50],
+                            'ccrs': ccrs.PlateCarree(central_longitude=0),
+                            'figsize': (10. ,7.5)},
+            
+            "WCQPF":        {'ext': [235, 255, 30., 50.], # west coast qpf
+                            'xticks': [-125, -120, -115, -110, -105],
+                            'yticks': [30, 35, 40, 45, 50],
+                            'ccrs': ccrs.PlateCarree(central_longitude=0),
+                            'figsize': (10. ,7.5)},
+            "WCQPF2":       {'ext': [235, 245, 30., 50.], # west coast qpf 2
+                            'xticks': [-125, -120, -115, -110, -105],
+                            'yticks': [30, 35, 40, 45, 50],
+                            'ccrs': ccrs.PlateCarree(central_longitude=0),
+                            'figsize': (8. ,12)},
+            "WCQPF3":        {'ext': [220, 255, 30., 60.], # west coast qpf + SE Alaska
+                            'xticks': [-140, -135, -130, -125, -120, -115, -110, -105],
+                            'yticks': [30, 35, 40, 45, 50, 55, 60],
+                            'ccrs': ccrs.PlateCarree(central_longitude=0),
+                            'figsize': (10. ,7)},
+                            
+            "SFBAY":        {'ext': [236, 239, 37., 40.], # west coast qpf 2
+                            'xticks': [-124, -123, -122, -121],
+                            'yticks': [37, 38, 39, 40],
+                            'ccrs': ccrs.PlateCarree(central_longitude=0),
+                            'figsize': (10. ,7.5)},
+            "NH":           {'ext': [120, 380, 0., 80.], # northern hemisphere
+                            'xticks': [120, 140, 160, 180, -160, -140, -120, -100, -80, -60, -40, -20, 0, 20],
+                            'yticks': [0, 10, 20, 30, 40, 50, 60, 70, 80],
+                            'ccrs': ccrs.PlateCarree(central_longitude=-110),
+                            'figsize': (18., 5.)},
+            "Global":       {'ext': [0, 360, -90., 90.], # northern hemisphere
+                            'xticks': [120, 140, 160, 180, -160, -140, -120, -100, -80, -60, -40, -20, 0, 20],
+                            'yticks': [-80,-60,-40,-20, 0, 20, 40, 60, 80],
                             'ccrs': ccrs.PlateCarree(central_longitude=180),
-                            'figsize': (10. ,8.)
-                            },  
+                            'figsize': (10., 5.)},
+                            
+
+                            
           }
            
            

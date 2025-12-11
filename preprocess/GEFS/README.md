@@ -1,1 +1,0 @@
-These set of scripts preprocess GEFS .grb data and output an a single .nc file with IVT computed.

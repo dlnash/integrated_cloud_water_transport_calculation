@@ -16,8 +16,8 @@ import numpy as np
 import pandas as pd
 import datetime
 import cartopy.crs as ccrs
-
 import calc_funcs as cfuncs
+import gc
 
 def read_gfs_deterministic(filename, vardict, show_catalog=False):
 
@@ -56,7 +56,7 @@ def read_gfs_deterministic(filename, vardict, show_catalog=False):
     #iterating over all variables in the vardict and storing each one in a new dictionary called selected_vars
     for var in vardict.keys():
 
-        ds = xr.open_dataset(filename,
+        ds = xr.open_dataset(filename,decode_timedelta=True,
                         engine='cfgrib',filter_by_keys=vardict[var],backend_kwargs={"indexpath": ''})
         
         
@@ -201,235 +201,60 @@ def read_ecmwf_S1D(filename, vardict, show_catalog=False):
         
     return selected_vars
 
-class load_GFS_datasets:
-    '''
-    Loads variables needed for wvflux meteogram plots from GFS .grb2 files
+def calc_gfs_data(F, fdate):
+    #########################
+    ### READ NEW GFS DATA ###
+    #########################
+    date_string = fdate
+    fpath = '/data/projects/external_datasets/GFS/processed/{0}/'.format(date_string)
+
+    fname = '{0}_F{1}.grb2'.format(date_string, str(F).zfill(3))
+
+    fname = fpath+fname
+
+    gfs_vardict = {
+
+                    "rwmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'rwmr'}, # rain mixing ratio (kg/kg)
+                    "clwmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'clwmr'}, # cloud water mixing ratio (kg/kg)
+                    "icmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'icmr'}, # ice mixing ratio (kg/kg)
+                    "snmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'snmr'},  # snow mixing ratio (kg/kg)
+                    "u":{'typeOfLevel': 'isobaricInhPa', "shortName":'u'}, #U-component of wind
+                    "v":{'typeOfLevel': 'isobaricInhPa', "shortName":'v'}, #V-component of wind
+                    "t":{'typeOfLevel': 'isobaricInhPa', "shortName":'t'}, #Temperature
+                    "q":{'typeOfLevel': 'isobaricInhPa', "shortName":'q'}, #Specific humidity
+                    "sp": {'typeOfLevel': 'surface',  'level': 0, 'paramId': 134, 'shortName': 'sp'} # surface pressure
+                    }
+
+    gfs = read_gfs_deterministic(fname, gfs_vardict, show_catalog=False)
+
+    # --- merge all selected vars to single dataset ---
+    ds = xr.merge(gfs.values(), compat='no_conflicts', join="outer")
+
+    # --- add condensates together as new var ---
+    ds['twmr'] = ds['q'] + ds['rwmr'] + ds['clwmr'] + ds['icmr'] + ds['snmr']
+
+    # --- Compute IVT and IWT ---
+    ivt_ds = cfuncs.calc_transport_manual(ds, include_condensates=False)
+    iwt_ds = cfuncs.calc_transport_manual(ds, include_condensates=True)
+    ds = xr.merge([ivt_ds, iwt_ds], compat='no_conflicts')
+
+    # --- trash collection ---
+    del gfs, ivt_ds, iwt_ds
+    gc.collect()
+
+    # --- Compute ICT ---
+    ds['ict'] = ds['iwt'] - ds['ivt']
+
+    # --- Compute ICT/IVT ratio expressed as a percent (%) ---
+    ds['ratio'] = (ds['ict']/ds['ivt']) * 100
+
+    # --- Add attributes necessary for plotting function ---
+    new_attrs = {
+            "model": "GFS",
+            "init": ds.time.values,
+            "valid_time": ds.valid_time.values,
+            "datacrs": ccrs.PlateCarree(central_longitude=0),
+        }
+    ds.attrs = new_attrs
     
-    Parameters
-    ----------
-    F : int
-        the forecast lead requested
-        
-    fdate : str
-        string of date for the filename in YYYYMMDDHH format
-  
-    Returns
-    -------
-    xarray : 
-        xarray dataset object with variables
-    
-    '''
-    def __init__(self, F, fdate=None):
-        print('Preprocessing {0} ...'.format(F))
-        self.F = F
-        
-        #########################
-        ### READ NEW GFS DATA ###
-        #########################
-        path_to_data = '/data/projects/external_datasets/GFS/processed/*/'
-        if fdate is None:
-            list_of_files = glob.glob(path_to_data)
-            self.fpath = max(list_of_files, key=os.path.getctime)
-            regex = re.compile(r'\d+')
-            self.date_string = regex.findall(self.fpath)[-1]
-        elif fdate is not None:
-            self.date_string = fdate
-            self.fpath = '/data/projects/external_datasets/GFS/processed/{0}/'.format(self.date_string)
-        
-        fname = '{0}_F{1}.grb2'.format(self.date_string, str(self.F).zfill(3))
-        
-        self.fname = self.fpath+fname
-        print(self.fname)
-    def calc_vars(self):
-        ## dictionary of variables we need for the cross section
-        gfs_vardict = {
-        "u_wind":{"typeOfLevel":'isobaricInhPa',"shortName":"u"}, #U-component of wind
-        "v_wind":{"typeOfLevel":'isobaricInhPa',"shortName":"v"}, #V-component of wind
-        "iwv":{"typeOfLevel":'atmosphereSingleLayer',"shortName":"pwat"}, #Integrated precipitable water or IWV
-        "temperature":{"typeOfLevel":'isobaricInhPa',"shortName":"t"}, #Temperature
-        "rh":{"typeOfLevel":'isobaricInhPa',"shortName":"r"}, #Relative Humidity
-        "sfc_pressure":{'name': 'Surface pressure', 'typeOfLevel': 'surface', 'level': 0, 'paramId': 134, 'shortName': 'sp'}, #surface pressure
-        "freezing_level": {'typeOfLevel': 'isothermZero', 'shortName': 'gh'}, ## freezing level
-        "orog": {'typeOfLevel': 'surface', 'shortName': 'orog'}, ## elevation
-    }
-        ## need a special dict for prec bc F000 does not have this
-        prec_dict = {"prec":{'name': 'Total Precipitation', 'typeOfLevel': 'surface', 'level': 0, 'paramId': 228228, 'shortName': 'tp'} #total precipitation
-            }
-        if self.F > 0:
-            gfs_vardict.update(prec_dict)
-            
-        #gfs is a dictionary of datasets
-        gfs = read_gfs_deterministic(filename=self.fname,vardict=gfs_vardict, show_catalog=False)
-
-#         #### Calculating WVFLUX #####
-        #extending pressure vector to 3d array to match rh shape
-        pressure_3d = np.tile(gfs["rh"].isobaricInhPa.values[:, np.newaxis, np.newaxis], (1, gfs["rh"].values.shape[1], gfs["rh"].values.shape[2]))
-
-        # calculating specific humidity from relative humidity for gfs
-        gfs_q = cfuncs.specific_humidity(temperature=gfs["temperature"].values, pressure=pressure_3d*100, relative_humidity=gfs["rh"].values/100)
-
-        ## calculate density
-        density = cfuncs.calculate_air_density(pressure=pressure_3d, temperature=gfs["temperature"], relative_humidity=gfs["rh"])
-        ## calculating wvflux
-        wv_flux = cfuncs.calculate_wvflux(uwind=gfs["u_wind"].values, vwind=gfs["v_wind"].values, density=density, specific_humidity=gfs_q)
-
-        # BUILD DATASET
-        if self.F > 0:
-            ds = xr.merge([gfs["u_wind"], gfs["v_wind"], gfs["rh"], gfs["iwv"], gfs["temperature"], gfs["orog"],
-                           gfs["sfc_pressure"], gfs['freezing_level'], gfs["prec"]])
-        else:
-            ds = xr.merge([gfs["u_wind"], gfs["v_wind"], gfs["rh"], gfs["iwv"], gfs["temperature"], gfs["orog"],
-                           gfs["sfc_pressure"], gfs['freezing_level']])
-            
-        
-        ## add in calculated vars
-        ds = ds.assign(wvflux=(['isobaricInhPa','latitude','longitude'],wv_flux))
-
-        ## write intermediate data files
-        tmp_directory = "/data/projects/operations/wvflux_meteograms/data/tmp/"
-        out_fname = tmp_directory+'tmp_{0}_{1}.nc'.format('GFS', str(self.F).zfill(3))
-        ds.to_netcdf(path=out_fname, mode = 'w', format='NETCDF4')
-        ds.close() ## close data
-
-        return None
-    
-class load_ECMWF_datasets:
-    '''
-    Loads variables needed for ivt cross section plots from ECMWF grb files
-    
-    Parameters
-    ----------
-    F : int
-        the forecast lead requested
-        
-    fdate : str
-        string of date for the filename in YYYYMMDDHH format
-  
-    Returns
-    -------
-    xarray : 
-        xarray dataset object with variables
-    
-    '''
-    def __init__(self, F, fdate=None):
-        self.F = F
-        if fdate is not None:
-            date_string = fdate
-            fpath = '/data/downloaded/Forecasts/ECMWF/NRT_data/{0}'.format(fdate)
-            date_string = fdate
-            print(date_string)
-
-        else:
-            path_to_data = '/data/downloaded/Forecasts/ECMWF/NRT_data/*'
-            list_of_files = glob.glob(path_to_data)
-            fpath = max(list_of_files, key=os.path.getctime)
-            regex = re.compile(r'\d+')
-            date_string = regex.findall(fpath)[-1]
-            print(date_string)
-
-
-        init_time = datetime.datetime.strptime(date_string,'%Y%m%d%H')
-        lead_time = datetime.timedelta(hours=int(F))
-        sp_lead_time = datetime.timedelta(hours=3)
-
-        ecmwf_s2d_filename = "/S2D{init:%m%d%H%M}{valid:%m%d%H%M}1.grb".format(init=init_time, valid=init_time+lead_time)
-        ecmwf_s1d_filename = "/S1D{init:%m%d%H%M}{valid:%m%d%H%M}1".format(init=init_time, valid=init_time+lead_time)
-
-        self.ecmwf_s2d_filename = fpath+"/S2D{init:%m%d%H%M}{valid:%m%d%H%M}1.grb".format(init=init_time, valid=init_time+lead_time)
-        self.ecmwf_s1d_filename = fpath+"/S1D{init:%m%d%H%M}{valid:%m%d%H%M}1".format(init=init_time, valid=init_time+lead_time)
-        ## need a special filename for freezing level at F=0
-        self.ecmwf_s1d_special_filename = fpath+"/S1D{init:%m%d%H%M}{valid:%m%d%H%M}1".format(init=init_time, valid=init_time+sp_lead_time)
-
-    def calc_vars(self):
-        ecmwf_s2d_vardict = {
-                    "u_wind":{"shortName":'u'},#U-component of wind
-                    "v_wind":{"shortName":'v'}, #V-component of wind
-                    "specific_humidity":{"shortName":'q'},#Specific humidity
-                    "temperature":{"shortName":"t"} #Temperature
-                        }
-
-        ecmwf_s1d_vardict = {
-                        "sfc_pressure":{"shortName":'sp'},
-                        "iwv":{"shortName":'tcw'},
-                        "freezing_level": {'shortName': 'deg0l'},
-                        "tp": {'shortName': 'tp'},
-                        "z": {'shortName': 'z'},
-                        }
-        
-        ecmwf_F00_vardict = {
-                        "sfc_pressure":{"shortName":'sp'},
-                        "iwv":{"shortName":'tcw'},
-                        "z": {'shortName': 'z'},
-                        }
-
-        ##reading ecmwf s1d and s2d files
-        ##ecmwf is a dictionary of datasets
-        ecmwf_s2d = read_ecmwf_S2D(filename=self.ecmwf_s2d_filename,vardict=ecmwf_s2d_vardict, show_catalog=False)
-        
-        if self.F == 0:
-            ecmwf_s1d = read_ecmwf_S1D(filename=self.ecmwf_s1d_filename,
-                                       vardict=ecmwf_F00_vardict, 
-                                       show_catalog=False)
-            ## have to read freezing level from +03 lead
-            ecmwf_deg0l = read_ecmwf_S1D(filename=self.ecmwf_s1d_special_filename,
-                                         vardict={"freezing_level": {'shortName': 'deg0l'}},
-                                         show_catalog=False)
-            
-        else:
-            ecmwf_s1d = read_ecmwf_S1D(filename=self.ecmwf_s1d_filename,vardict=ecmwf_s1d_vardict, show_catalog=False)
-
-        ## calculating wvflux
-        rh = cfuncs.calc_relative_humidity_from_specific_humidity(ecmwf_s2d["pressure"], ecmwf_s2d["temperature"], ecmwf_s2d["specific_humidity"])
-        density = cfuncs.calculate_air_density(pressure=ecmwf_s2d["pressure"].values, temperature=ecmwf_s2d["temperature"], relative_humidity=rh)
-        
-        wv_flux = cfuncs.calculate_wvflux(uwind=ecmwf_s2d["u_wind"].values, vwind=ecmwf_s2d["v_wind"].values, density=density, specific_humidity=ecmwf_s2d["specific_humidity"].values)
-        
-        wv_flux = xr.DataArray(wv_flux, name="wvflux", 
-                             dims=("hybrid", "latitude","longitude"), 
-                             coords={"hybrid": rh.hybrid.values, 
-                                     "latitude": rh.latitude.values, 
-                                     "longitude": rh.longitude.values})
-
-        ## creating a 3D time array for plotting
-        a = ecmwf_s2d["u_wind"].valid_time
-        b = ecmwf_s2d["u_wind"]
-        a2, b2 = xr.broadcast(a, b)
-        a2.name = 'valid_time_td'
-        a2 = a2.transpose('hybrid', 'latitude', 'longitude')
-
-        ## putting u, v, and pressure and 3D lat into a dataset
-        ds_lst = [ecmwf_s2d["v_wind"], ecmwf_s2d["u_wind"], wv_flux, a2, ecmwf_s2d["pressure"], rh, ecmwf_s2d["temperature"]]
-        ds1 = xr.merge(ds_lst)
-
-        ## build final dataset
-        if self.F > 0:
-            var_dict = {'pwat': (['latitude', 'longitude'], ecmwf_s1d["iwv"].values),
-                        'sp': (['latitude', 'longitude'], ecmwf_s1d["sfc_pressure"].values),
-                        'gh': (['latitude', 'longitude'], ecmwf_s1d["freezing_level"].values),
-                        'orog': (['latitude', 'longitude'], ecmwf_s1d["z"].values/10.),
-                        'tp': (['latitude', 'longitude'], ecmwf_s1d["tp"].values*1000.)}
-        else: 
-            var_dict = {'pwat': (['latitude', 'longitude'], ecmwf_s1d["iwv"].values),
-                        'sp': (['latitude', 'longitude'], ecmwf_s1d["sfc_pressure"].values),
-                        'orog': (['latitude', 'longitude'], ecmwf_s1d["z"].values/10.),
-                        'gh': (['latitude', 'longitude'], ecmwf_deg0l["freezing_level"].values)}
-
-        model_data = xr.Dataset(var_dict,
-                                coords={'latitude': (['latitude'], ecmwf_s1d["sfc_pressure"].latitude.values),
-                                        'longitude': (['longitude'], ecmwf_s1d["sfc_pressure"].longitude.values)},
-                               attrs={"model":"ECMWF", "init":str(ecmwf_s1d["sfc_pressure"].time.values), 
-                                      "valid_time":str(ecmwf_s1d["sfc_pressure"].valid_time.values)})
-
-        ## merge vertical level data and single level data
-        model_data = xr.merge([model_data, ds1])
-        
-        ## rename rh to r to match GFS
-        model_data = model_data.rename({'rh': 'r'})
-
-        ## write intermediate data files
-        tmp_directory = "/data/projects/operations/wvflux_meteograms/data/tmp/"
-        out_fname = tmp_directory + 'tmp_{0}_{1}.nc'.format('ECMWF', str(self.F).zfill(3))
-        model_data.to_netcdf(path=out_fname, mode = 'w', format='NETCDF4')
-        model_data.close() ## close data
-        
-        return None
+    return ds

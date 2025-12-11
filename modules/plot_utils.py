@@ -1,3 +1,4 @@
+import os
 import copy
 import numpy as np
 import xarray as xr
@@ -7,6 +8,15 @@ import matplotlib.pyplot as plt
 from matplotlib.colorbar import Colorbar
 from matplotlib.ticker import FuncFormatter
 import domains as domains
+
+def create_folder(filename):
+    '''
+    :param path: path string
+    :return:
+    '''
+
+    if not os.path.exists(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
 
 # ----------------------------------------------------------------------
 # Domain cropping

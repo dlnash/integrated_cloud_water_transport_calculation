@@ -1,0 +1,14 @@
+name: minimal-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - xarray
+  - numpy
+  - pandas
+  - matplotlib
+  - cartopy
+  - pillow
+  - scipy
+  - cfgrib
+  - eccodes

@@ -75,6 +75,6 @@ def calc_transport_manual(ds, include_condensates=False):
     ivt = np.sqrt(qu**2 + qv**2)
     ivt.name = 'ivt' if not include_condensates else 'iwt'
 
-    ds = xr.merge([qu, qv, ivt])
+    ds = xr.merge([qu, qv, ivt], compat='no_conflicts')
     
     return ds
