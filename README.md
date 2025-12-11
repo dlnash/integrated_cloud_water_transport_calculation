@@ -1,8 +1,14 @@
-## ICT, IWT, and ICT/IWT Plots
+# Repository Summary
 
-This repository uses GFS data to compute and plot integrated condensate transport (ICT), integrated w? transport (IWT), and the Ratio of ICT to integrated water vapor transport (IVT) for the Interior West. 
+This repository uses GFS data to compute and visualize water transport metrics for the Interior West, including:
 
-### To run:
+- **Integrated Water Vapor Transport (IVT):** Transport of atmospheric water vapor.  
+- **Integrated Water Transport (IWT):** IVT calculated using total mixing ratios, including condensate.  
+- **Integrated Condensate Transport (ICT):** The difference between IWT and IVT.  
+- **ICT/IVT Ratio (%):** Percentage of condensate transport relative to vapor transport.
+
+
+## To run:
 
 ---
 
