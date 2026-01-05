@@ -218,6 +218,7 @@ def calc_gfs_data(F, fdate):
                     "clwmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'clwmr'}, # cloud water mixing ratio (kg/kg)
                     "icmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'icmr'}, # ice mixing ratio (kg/kg)
                     "snmr":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'snmr'},  # snow mixing ratio (kg/kg)
+                    "grle":{'typeOfLevel': 'isobaricInhPa', 'shortName': 'grle'},  # graupel mixing ratio (kg/kg)
                     "u":{'typeOfLevel': 'isobaricInhPa', "shortName":'u'}, #U-component of wind
                     "v":{'typeOfLevel': 'isobaricInhPa', "shortName":'v'}, #V-component of wind
                     "t":{'typeOfLevel': 'isobaricInhPa', "shortName":'t'}, #Temperature
@@ -231,7 +232,7 @@ def calc_gfs_data(F, fdate):
     ds = xr.merge(gfs.values(), compat='no_conflicts', join="outer")
 
     # --- add condensates together as new var ---
-    ds['twmr'] = ds['q'] + ds['rwmr'] + ds['clwmr'] + ds['icmr'] + ds['snmr']
+    ds['twmr'] = ds['q'] + ds['rwmr'] + ds['clwmr'] + ds['icmr'] + ds['snmr'] + ds['grle']
 
     # --- Compute IVT and IWT ---
     ivt_ds = cfuncs.calc_transport_manual(ds, include_condensates=False)

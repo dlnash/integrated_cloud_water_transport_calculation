@@ -9,7 +9,7 @@ mm=`date -d '-'$lag' hours' -u +%m`
 dd=`date -d '-'$lag' hours' -u +%d`
 hh=`date -d '-'$lag' hours' -u +%H`
 
-PATH_TO_REPO=/home/dnash/repos/integrated_cloud_water_transport_calculation/
+PATH_TO_REPO=/data/projects/operations/ICT_IWT/
 
 rm -f ${PATH_TO_REPO}figs/GFS_*_IntWest_latest_F*.png
 
@@ -40,7 +40,7 @@ echo $filename" ready for processing"
 date=`date`
 echo "STARTING MAKING ICT Plots at "$date
 
-singularity exec --bind /data:/data -e /data/projects/operations/ICT_IWT/envs/ICT_IWT.sif /opt/conda/bin/python /data/projects/operations/ICT_IWT/run_tool.py "GFS" "$yyyy$mm$dd$hh"
+singularity exec --bind /data:/data -e /data/projects/operations/ICT_IWT/env/ICT_IWT.sif /opt/conda/bin/python /data/projects/operations/ICT_IWT/run_tool.py "GFS" "$yyyy$mm$dd$hh"
 
 cd ${PATH_TO_FIGS}figs/
 check=1

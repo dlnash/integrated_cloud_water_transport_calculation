@@ -25,11 +25,12 @@ fdate = sys.argv[2]
 F_lst = np.arange(0, 168+3, 3)
 
 def plot_ICT_IWV(F, fdate):
+    repo_path = "/data/projects/operations/ICT_IWT/"
     print('Reading {0} ...'.format(F))
     ds = calc_gfs_data(F, fdate)
 
     # Plot - use pconfig to change vars plotted
-    outpath="/data/projects/website/mirror/htdocs/Projects/CO_landfalling_ARs/images/"
+    outpath=f"{repo_path}figs"
     pconfig = {
         'IVT': {
             'cfkey': 'ivt',
@@ -75,8 +76,8 @@ def plot_ICT_IWV(F, fdate):
                 "ulc_title":pconfig[varname]['title'],
                 "llc_title":"Initialized: {init_time}",
                 "lrc_title":"F-{lead_time:03d}  Valid: {valid_time}",
-                "logo_file":'/home/dnash/repos/integrated_cloud_water_transport_calculation/CW3E-Logo-Vertical-Acronym-FullColor.png',
-                "font_file":'/home/dnash/repos/integrated_cloud_water_transport_calculation/modules/helvetica.ttc'
+                "logo_file":f"{repo_path}CW3E-Logo-Vertical-Acronym-FullColor.png",
+                "font_file":f"{repo_path}/modules/helvetica.ttc"
             }
 
 
