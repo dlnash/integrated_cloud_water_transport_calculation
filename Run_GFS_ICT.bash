@@ -40,7 +40,7 @@ echo $filename" ready for processing"
 date=`date`
 echo "STARTING MAKING ICT Plots at "$date
 
-singularity exec --bind /data:/data -e /data/projects/operations/ICT_IWT/env/ICT_IWT.sif /opt/conda/bin/python /data/projects/operations/ICT_IWT/run_tool.py "GFS" "$yyyy$mm$dd$hh"
+apptainer exec -e --bind /data:/data /data/projects/operations/ICT_IWT/env/ICT_IWT.sif python /data/projects/operations/ICT_IWT/run_tool.py "GFS" "$yyyy$mm$dd$hh"
 
 cd ${PATH_TO_FIGS}figs/
 check=1
