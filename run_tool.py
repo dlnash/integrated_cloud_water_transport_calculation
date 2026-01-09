@@ -30,7 +30,7 @@ def plot_ICT_IWV(F, fdate):
     ds = calc_gfs_data(F, fdate)
 
     # Plot - use pconfig to change vars plotted
-    outpath=f"{repo_path}figs"
+    outpath=f"{repo_path}figs/"
     pconfig = {
         'IVT': {
             'cfkey': 'ivt',
