@@ -15,7 +15,7 @@ import gc
 import warnings
 warnings.filterwarnings("ignore", message="Engine.*loading failed")
 
-sys.path.append('modules')
+sys.path.append('/data/projects/operations/ICT_IWT/modules')
 from read_deterministic_data import calc_gfs_data
 from plotter import plot_fields
 from calc_funcs import format_timedelta_to_HHMMSS

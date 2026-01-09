@@ -16,5 +16,5 @@ To run the code with a singularity container:
 
 ```bash
 ## runs plots for GFS
-singularity exec --bind /data:/data -e /data/projects/operations/ICT_IWT/env/ICT_IWT.sif /opt/conda/bin/python /data/projects/operations/ICT_IWT/run_tool.py "GFS" "YYYYMMDDHH"
+apptainer exec -e --bind /data:/data /data/projects/operations/ICT_IWT/env/ICT_IWT.sif python /data/projects/operations/ICT_IWT/run_tool.py "GFS" "YYYYMMDDHH"
 ```
