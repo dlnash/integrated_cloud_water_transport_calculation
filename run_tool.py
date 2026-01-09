@@ -76,7 +76,7 @@ def plot_ICT_IWV(F, fdate):
                 "ulc_title":pconfig[varname]['title'],
                 "llc_title":"Initialized: {init_time}",
                 "lrc_title":"F-{lead_time:03d}  Valid: {valid_time}",
-                "logo_file":f"{repo_path}CW3E-Logo-Vertical-Acronym-FullColor.png",
+                "logo_file":f"/data/projects/operations/data/CW3E_Logo_Suite/5-Vertical-Acronym_Only/Digital/PNG/CW3E-Logo-Vertical-Acronym-FullColor.png",
                 "font_file":f"{repo_path}/modules/helvetica.ttc"
             }
 
